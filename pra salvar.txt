@@ -1,0 +1,201 @@
+CREATE DATABASE buscapharma;
+
+USE buscapharma;
+
+
+CREATE TABLE django_session (
+    session_key VARCHAR(40) NOT NULL PRIMARY KEY,
+    session_data TEXT NOT NULL,
+    expire_date DATETIME NOT NULL
+);
+
+
+CREATE TABLE Tipo_Unidade (
+    id_tipo_unidade INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    desc_unidade ENUM('Hospital', 'Ubs', 'Upa', 'Farmacia popular', 'Alto custo') NOT NULL
+);
+
+CREATE TABLE Unidade (
+    id_unidade INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    id_tipo_unidade INT NOT NULL,
+    nome_unidade VARCHAR(130) NOT NULL,
+    status ENUM('Aberto', 'Fechado') NOT NULL,
+    cep VARCHAR(9) NOT NULL,
+    numero VARCHAR(9) NOT NULL,
+    hora_abertura TIME NOT NULL,
+    hora_encerramento TIME NOT NULL
+);
+
+
+CREATE TABLE Administrador (
+    id_adm INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    id_unidade INT NOT NULL,
+    date_joined DATETIME,
+    last_login DATETIME,
+    is_staff TINYINT,
+    is_active TINYINT,
+    is_superuser TINYINT,
+    first_name VARCHAR(120) NOT NULL,
+    last_name VARCHAR(120) NOT NULL,
+    email VARCHAR(60) NOT NULL,
+    username VARCHAR(255) NOT NULL UNIQUE,
+    password VARCHAR(255) NOT NULL
+);
+
+
+CREATE TABLE Usuario (
+    cpf VARCHAR(14) NOT NULL PRIMARY KEY,
+    date_joined DATETIME,
+    last_login DATETIME,
+    is_staff TINYINT,
+    is_active TINYINT,
+    is_superuser TINYINT,
+    first_name VARCHAR(120) NOT NULL,
+    last_name VARCHAR(120) NOT NULL,
+    email VARCHAR(60) NOT NULL,
+    telefone VARCHAR(14) NOT NULL,
+    username VARCHAR(255) NOT NULL UNIQUE,
+    password VARCHAR(255) NOT NULL
+);
+
+
+
+CREATE TABLE Tipo_Item (
+    id_tipo INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    descricao ENUM('remédio', 'vacina') NOT NULL
+);
+
+CREATE TABLE Item (
+    id_item INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    id_tipo INT NOT NULL,
+    nome_item VARCHAR(255) NOT NULL,
+    comp_ativ_itm VARCHAR(255) NOT NULL
+);
+
+
+
+CREATE TABLE Agendamento (
+    id_agend INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    id_unidade INT NOT NULL,
+    id_item INT NOT NULL,
+    cpf VARCHAR(14) NOT NULL,
+    status ENUM('Agendado', 'Realizado', 'Cancelado') NOT NULL,
+    data DATE NOT NULL,
+    hora TIME NOT NULL
+);
+
+
+
+
+CREATE TABLE evento (
+    id_evento INT AUTO_INCREMENT PRIMARY KEY,
+    id_item INT NOT NULL,
+    id_unidade INT NOT NULL,
+    titulo VARCHAR(120) NOT NULL,
+    descricao VARCHAR(255) NOT NULL,
+    data_inicio DATETIME NOT NULL,  
+    data_termino DATETIME NOT NULL
+);
+
+
+
+CREATE TABLE Estoque (
+    id_estoque INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    id_item INT NOT NULL,
+    id_unidade INT NOT NULL,
+    qtde_atual INT NOT NULL,
+    qtde_min INT NOT NULL,
+    qtde_max INT NOT NULL
+);
+
+
+CREATE TABLE Indicacao (
+    id_indicacao INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    categoria_remedio VARCHAR(150) NOT NULL,
+    precaucao VARCHAR(150) NOT NULL,
+    contra_indicacao VARCHAR(150) NOT NULL
+);
+
+CREATE TABLE Aux_Item_Indicacao (
+    id_aux_itm_ind INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    id_item INT NOT NULL,
+    id_indicacao INT NOT NULL,
+    dsgm_max_adlt VARCHAR(250) NOT NULL,
+    dsgm_max_crn VARCHAR(250) NOT NULL
+);
+
+CREATE TABLE Lote (
+    num_lote VARCHAR(20) NOT NULL PRIMARY KEY,
+    id_item INT NOT NULL,
+    id_unidade INT NOT NULL,
+    validade DATE NOT NULL,
+    qtde INT NOT NULL
+);
+
+CREATE TABLE Protocolo (
+    id_protocolo INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    id_item INT NOT NULL,
+    documentos_necessarios TEXT NOT NULL,
+    exames_necessarios TEXT NOT NULL
+);
+
+
+ALTER TABLE Unidade
+ADD CONSTRAINT FK_Unidade_Tipo_Unidade
+FOREIGN KEY (id_tipo_unidade) REFERENCES Tipo_Unidade(id_tipo_unidade);
+
+ALTER TABLE Administrador
+ADD CONSTRAINT FK_Admistrador_Unidade
+FOREIGN KEY (id_unidade) REFERENCES Unidade(id_unidade);
+
+ALTER TABLE Item
+ADD CONSTRAINT FK_Item_Tipo_Item
+FOREIGN KEY (id_tipo) REFERENCES Tipo_Item(id_tipo);
+
+ALTER TABLE Agendamento
+ADD CONSTRAINT FK_Agendamento_Unidade
+FOREIGN KEY (id_unidade) REFERENCES Unidade(id_unidade);
+
+ALTER TABLE Agendamento
+ADD CONSTRAINT FK_Agendamento_Usuario
+FOREIGN KEY (cpf) REFERENCES Usuario(cpf);
+
+ALTER TABLE Agendamento
+ADD CONSTRAINT FK_Agendamento_Item
+FOREIGN KEY (id_item) REFERENCES Item(id_item);
+
+ALTER TABLE Evento
+ADD CONSTRAINT FK_Evento_Unidade
+FOREIGN KEY (id_unidade) REFERENCES Unidade(id_unidade);
+
+ALTER TABLE Evento
+ADD CONSTRAINT FK_Evento_Item
+FOREIGN KEY (id_item) REFERENCES Item(id_item);
+
+ALTER TABLE Estoque
+ADD CONSTRAINT FK_Estoque_Item
+FOREIGN KEY (id_item) REFERENCES Item(id_item);
+
+ALTER TABLE Estoque
+ADD CONSTRAINT FK_Estoque_Unidade
+FOREIGN KEY (id_unidade) REFERENCES Unidade(id_unidade);
+
+ALTER TABLE Aux_Item_Indicacao
+ADD CONSTRAINT FK_Aux_Item_Indicacao_Item
+FOREIGN KEY (id_item) REFERENCES Item(id_item);
+
+ALTER TABLE Aux_Item_Indicacao
+ADD CONSTRAINT FK_Aux_Item_Indicacao_Indicacao
+FOREIGN KEY (id_indicacao) REFERENCES Indicacao(id_indicacao);
+
+ALTER TABLE Lote
+ADD CONSTRAINT FK_Lote_Item
+FOREIGN KEY (id_item) REFERENCES Item(id_item);
+
+ALTER TABLE Lote
+ADD CONSTRAINT FK_Lote_Unidade
+FOREIGN KEY (id_unidade) REFERENCES Unidade(id_unidade);
+
+ALTER TABLE Protocolo
+ADD CONSTRAINT FK_Protocolo_Item
+FOREIGN KEY (id_item) REFERENCES Item(id_item);
